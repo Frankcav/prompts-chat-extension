@@ -1,5 +1,4 @@
 import { useCopy } from "@/hooks/useCopy";
-import { analytics } from "@/lib/analytics";
 import { CHAT_PLATFORMS, CODE_PLATFORMS, Platform, buildPlatformUrl } from "@/lib/constants";
 import { usePrompts } from "@/lib/contexts/PromptsContext";
 import { cn } from "@/lib/utils";
@@ -69,7 +68,6 @@ export function RunPromptButton({
   const handleRunOnPlatform = async (platform: Platform): Promise<void> => {
     setOpen(false);
     setIsLoading(true);
-    analytics.promptRun(promptId, platform.id);
 
     try {
       if (platform.id !== "copy") {

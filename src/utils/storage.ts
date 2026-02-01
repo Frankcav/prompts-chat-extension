@@ -10,10 +10,6 @@ export const isDarkModeStorage = storage.defineItem<boolean>('sync:isDarkMode', 
   fallback: false,
 });
 
-// Note: ga_client_id initialization is handled in analytics.ts since it needs
-// to generate a unique UUID on first access (storage.defineItem doesn't support functions)
-export const gaClientIdStorage = storage.defineItem<string>('local:ga_client_id');
-
 // React hook for WXT storage with type safety
 export function useWxtStorage<T>(item: ReturnType<typeof storage.defineItem<T>>) {
   const [value, setValue] = useState<T | null>(null);

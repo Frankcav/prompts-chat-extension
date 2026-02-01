@@ -6,9 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { PromptsList } from '@/components/PromptsList';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { SidePanelNotice } from '@/components/SidePanelNotice';
-import { analytics } from '@/lib/analytics';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { PromptsProvider, usePrompts } from '@/lib/contexts/PromptsContext';
 
 const FIVE_MINUTES = 5 * 60 * 1000;
@@ -27,10 +25,6 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { filteredPrompts, isLoading } = usePrompts();
-
-  useEffect(() => {
-    analytics.extensionOpened();
-  }, []);
 
   return (
     <div className="h-full w-full flex flex-col bg-muted dark:bg-muted/30 overflow-hidden">

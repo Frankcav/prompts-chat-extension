@@ -5,7 +5,6 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCopy } from "@/hooks/useCopy";
-import { analytics } from "@/lib/analytics";
 import { Prompt, Tag, TemplateVariable } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { applyTemplateVariables, hasTemplateVariables, parseTemplateVariables } from "@/lib/utils/prompts";
@@ -247,7 +246,6 @@ export function PromptDetailDialog({ prompt, open, onOpenChange }: PromptDetailD
     copy(finalContent)
       .then(() => {
         setCopyState('copied');
-        analytics.promptCopied(prompt.id, prompt.category);
         setTimeout(() => setCopyState('idle'), 2000);
       })
       .catch((err) => {
@@ -278,12 +276,6 @@ export function PromptDetailDialog({ prompt, open, onOpenChange }: PromptDetailD
       setCopyState('idle');
     }
   }, [open]);
-
-  useEffect(() => {
-    if (open && prompt) {
-      analytics.promptViewed(prompt.id, prompt.type);
-    }
-  }, [open, prompt]);
 
   if (!prompt) return null;
 
