@@ -1,6 +1,6 @@
 {
-  "name": "prompts-chat",
-  "description": "prompts.chat - AI-powered prompt library for ChatGPT, Claude, Gemini, and more",
+  "name": "prompts-otrochat",
+  "description": "prompts.otrochat - My AI-powered prompt library",
   "private": false,
   "version": "1.4.0",
   "type": "module",
