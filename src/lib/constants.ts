@@ -11,6 +11,14 @@ export interface Platform {
 
 export const CHAT_PLATFORMS: Platform[] = [
   {
+    id: 'otrochat',
+    name: 'OtroChat',
+    icon: '/brand-logos/owui-icon.svg',
+    baseUrl: 'https://otrochat.com',
+    inputSelector: '#chat-input',
+    supportsQuerystring: true,
+  },
+  {
     id: 'chatgpt',
     name: 'ChatGPT',
     icon: '/brand-logos/openai-icon.svg',
