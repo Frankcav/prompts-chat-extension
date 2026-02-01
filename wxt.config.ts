@@ -6,8 +6,8 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   srcDir: "src",
   manifest: ({ browser, manifestVersion }) => ({
-    name: "prompts.chat",
-    description: "prompts.chat - AI-powered prompt library for ChatGPT, Claude, Gemini, and more",
+    name: "prompts.otrochat.com",
+    description: "prompts.otrochat.com - My AI-powered prompt library",
     version: pkg.version,
     permissions: [
       "storage",
@@ -20,7 +20,8 @@ export default defineConfig({
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
     },
     host_permissions: [
-      "https://otrochat.com/*",      
+      "https://otrochat.com/*",
+      "https://prompts.otrochat.com/*",      
       "https://chatgpt.com/*",
       "https://claude.ai/*",
       "https://gemini.google.com/*",
