@@ -1,6 +1,7 @@
 export default defineContentScript({
   matches: [
     // Chat platforms
+    'https://otrochat.com/*',
     'https://chatgpt.com/*',
     'https://claude.ai/*',
     'https://gemini.google.com/*',
@@ -17,6 +18,7 @@ export default defineContentScript({
     'https://pi.ai/*',
     'https://manus.im/*',
     'https://fal.ai/*',
+    'https://prompts.otrochat.com/*',
     // Code platforms
     'https://github.com/*',
     'https://bolt.new/*',
