@@ -68,7 +68,7 @@ export default defineContentScript({
               inputElement.dispatchEvent(new Event('input', { bubbles: true }));
               (inputElement as HTMLTextAreaElement).focus();
             } else if (inputElement instanceof HTMLElement) {
-              inputElement.innerHTML = prompt;
+              inputElement.textContent = prompt;
               inputElement.dispatchEvent(new Event('input', { bubbles: true }));
               inputElement.dispatchEvent(new Event('change', { bubbles: true }));
               (inputElement as HTMLElement).focus();
