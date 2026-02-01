@@ -97,7 +97,7 @@ export function Navbar() {
         <div className="flex items-center gap-3 py-2.5">
           {/* Logo */}
           <a
-            href="https://prompts.chat"
+            href="https://prompts.otrochat.com"
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 hover:opacity-80 transition-opacity"

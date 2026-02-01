@@ -25,7 +25,7 @@ export function AboutDialog({ trigger }: AboutDialogProps) {
             <Logo size="md" />
           </DialogTitle>
           <DialogDescription className="text-sm text-left">
-            A browser extension for prompts.chat that lets you browse, filter, and run prompts directly in your favorite
+            A browser extension for prompts.otrochat.com that lets you browse, filter, and run prompts directly in your favorite
             AI tools.
           </DialogDescription>
         </DialogHeader>
@@ -61,7 +61,7 @@ export function AboutDialog({ trigger }: AboutDialogProps) {
                   </Avatar>
                   <div>
                     <div className="text-sm font-medium">Fatih Kadir Akın</div>
-                    <div className="text-sm text-muted-foreground">prompts.chat Creator</div>
+                    <div className="text-sm text-muted-foreground">prompts.otrochat.com Creator</div>
                   </div>
                 </div>
                 <a
@@ -95,9 +95,9 @@ export function AboutDialog({ trigger }: AboutDialogProps) {
             <h3 className="text-lg font-semibold mb-1">Add Your Prompt</h3>
             <div className="rounded-lg border p-4 bg-card">
               <p className="text-sm text-muted-foreground mb-3">
-                Have a great prompt to share? Submit it to prompts.chat to make it available for everyone.
+                Have a great prompt to share? Submit it to prompts.otrochat.com to make it available for everyone.
               </p>
-              <a href="https://prompts.chat/prompts/new" target="_blank" rel="noreferrer">
+              <a href="https://prompts.otrochat.com/prompts/new" target="_blank" rel="noreferrer">
                 <Button variant="outline" size="sm" className="gap-2">
                   Submit a new prompt
                 </Button>

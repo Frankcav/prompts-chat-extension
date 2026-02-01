@@ -198,7 +198,7 @@ function DialogFooterActions({
                 asChild
               >
                 <a
-                  href={`https://prompts.chat/prompts/${prompt.id}_${prompt.slug}`}
+                  href={`https://prompts.otrochat.com/prompts/${prompt.id}_${prompt.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -206,7 +206,7 @@ function DialogFooterActions({
                 </a>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">View on prompts.chat</TooltipContent>
+            <TooltipContent side="top">View on prompts.otrochat.com</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -284,7 +284,7 @@ export function PromptDetailDialog({ prompt, open, onOpenChange }: PromptDetailD
 
               <div className="flex items-center gap-2 text-xs flex-wrap">
                 <a
-                  href={`https://prompts.chat/@${prompt.author}`}
+                  href={`https://prompts.otrochat.com/@${prompt.author}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors font-medium"

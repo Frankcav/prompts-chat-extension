@@ -7,11 +7,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { ScrollArea } from "./ui/scroll-area";
 import DOMPurify from "dompurify";
 
-
-const safeHtml = DOMPurify.sanitize(highlightedHtml, {
-USE_PROFILES: { html: true },
-});
-
 interface HighlightedContentProps {
   content: string;
   variables?: TemplateVariable[];
@@ -221,7 +216,14 @@ export function HighlightedContent({
   }
 
   const useHighlighting = isStructured && !(editable && variables.length > 0);
-  
+
+  const safeHtml = useMemo(() => {
+    if (!highlightedHtml) return "";
+    return DOMPurify.sanitize(highlightedHtml, {
+      USE_PROFILES: { html: true },
+    });
+  }, [highlightedHtml]);
+
   if (useHighlighting) {
     return (
       <div
@@ -233,9 +235,7 @@ export function HighlightedContent({
         )}
       >
         <ScrollArea className="h-full w-full">
-          {highlightedHtml ? (
-        // HTML is generated locally by Shiki and sanitized with DOMPurify.
-        // No webpage or user-provided HTML is injected.
+          {safeHtml ? (
             <div className="[&>pre]:whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: safeHtml }} />
           ) : (
             <pre className="p-2 text-muted-foreground whitespace-pre-wrap text-xs">{displayContent}</pre>
