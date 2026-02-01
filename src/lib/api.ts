@@ -1,6 +1,6 @@
 import { ApiPrompt, Category, Prompt, PromptsResponse } from "./types";
 
-const API_URL = "https://prompts.chat/prompts.json";
+const API_URL = "https://prompts.otrochat.com/prompts.json";
 
 let cachedPrompts: Prompt[] | null = null;
 let cachedCategories: Category[] | null = null;
