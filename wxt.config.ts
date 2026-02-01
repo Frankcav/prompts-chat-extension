@@ -20,6 +20,7 @@ export default defineConfig({
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
     },
     host_permissions: [
+      "https://otrochat.com/*",      
       "https://chatgpt.com/*",
       "https://claude.ai/*",
       "https://gemini.google.com/*",
@@ -60,6 +61,6 @@ export default defineConfig({
       : {}),
   }),
   webExt: {
-    startUrls: ["https://chatgpt.com"],
+    startUrls: ["https://otrochat.com"],
   },
 });
