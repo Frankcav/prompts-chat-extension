@@ -61,7 +61,17 @@ export async function fetchPrompts(): Promise<PromptsResponse> {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json();
+  let data: { prompts?: unknown };
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('API Error: Invalid JSON response');
+  }
+
+  if (!Array.isArray(data.prompts)) {
+    throw new Error('API Error: Invalid response format');
+  }
+
   const apiPrompts: ApiPrompt[] = data.prompts;
 
   const prompts = apiPrompts.map(mapApiPromptToPrompt);

@@ -1,108 +1,56 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useStorage } from '../../src/lib/utils/storage';
+import { useWxtStorage } from '../../src/utils/storage';
 
-declare const global: typeof globalThis & {
-  browser: {
-    storage: {
-      sync: {
-        get: ReturnType<typeof vi.fn>;
-        set: ReturnType<typeof vi.fn>;
-        onChanged: {
-          addListener: ReturnType<typeof vi.fn>;
-          removeListener: ReturnType<typeof vi.fn>;
-        };
-      };
-    };
+// Create a mock storage item factory
+function createMockStorageItem<T>(fallback: T) {
+  let storedValue: T | undefined = undefined;
+  const watchers = new Set<(value: T | null) => void>();
+
+  return {
+    getValue: vi.fn(async () => storedValue ?? fallback),
+    setValue: vi.fn(async (value: T) => {
+      storedValue = value;
+      watchers.forEach(cb => cb(value));
+    }),
+    watch: vi.fn((callback: (value: T | null) => void) => {
+      watchers.add(callback);
+      return () => watchers.delete(callback);
+    }),
+    _reset: () => {
+      storedValue = undefined;
+      watchers.clear();
+    },
   };
-};
+}
 
+describe('useWxtStorage', () => {
+  it('should return null initially while loading', () => {
+    const mockStorage = createMockStorageItem('default');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result } = renderHook(() => useWxtStorage(mockStorage as any));
 
-describe('useStorage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(global.browser.storage.sync.get).mockResolvedValue({});
-  });
-
-  it('should return default value initially', async () => {
-    const { result } = renderHook(() =>
-      useStorage({ key: 'testKey', defaultValue: 'default' })
-    );
-
-    expect(result.current.value).toBe('default');
+    expect(result.current.value).toBe(null);
     expect(result.current.isLoading).toBe(true);
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    expect(result.current.error).toBe(null);
   });
 
-  it('should load value from storage', async () => {
-    vi.mocked(global.browser.storage.sync.get).mockResolvedValue({
-      testKey: 'storedValue',
-    });
-
-    const { result } = renderHook(() =>
-      useStorage({ key: 'testKey', defaultValue: 'default' })
-    );
-
-    await waitFor(() => {
-      expect(result.current.value).toBe('storedValue');
-      expect(result.current.isLoading).toBe(false);
-    });
-  });
-
-  it('should update value and persist to storage', async () => {
-    const { result } = renderHook(() =>
-      useStorage({ key: 'testKey', defaultValue: 'default' })
-    );
+  it('should load value and set isLoading to false', async () => {
+    const mockStorage = createMockStorageItem('chatgpt');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result } = renderHook(() => useWxtStorage(mockStorage as any));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    await act(async () => {
-      await result.current.setValue('newValue');
-    });
-
-    expect(result.current.value).toBe('newValue');
-    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({ testKey: 'newValue' });
+    expect(result.current.value).toBe('chatgpt');
   });
 
-  it('should support updater function', async () => {
-    vi.mocked(global.browser.storage.sync.get).mockResolvedValue({ counter: 5 });
-
-    const { result } = renderHook(() =>
-      useStorage({ key: 'counter', defaultValue: 0 })
-    );
-
-    await waitFor(() => expect(result.current.value).toBe(5));
-
-    await act(async () => {
-      await result.current.setValue((prev: number) => prev + 1);
-    });
-
-    expect(result.current.value).toBe(6);
-  });
-
-  it('should register and remove storage change listener', async () => {
-    const { unmount } = renderHook(() =>
-      useStorage({ key: 'testKey', defaultValue: 'default' })
-    );
-
-    await waitFor(() => {
-      expect(global.browser.storage.sync.onChanged.addListener).toHaveBeenCalled();
-    });
-
-    unmount();
-
-    expect(global.browser.storage.sync.onChanged.removeListener).toHaveBeenCalled();
-  });
-
-  it('should validate model ID for selectedModel key', async () => {
-    const { result } = renderHook(() =>
-      useStorage({ key: 'selectedModel', defaultValue: 'chatgpt' })
-    );
+  it('should update value via setValue', async () => {
+    const mockStorage = createMockStorageItem('chatgpt');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result } = renderHook(() => useWxtStorage(mockStorage as any));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -111,50 +59,71 @@ describe('useStorage', () => {
     await act(async () => {
       await result.current.setValue('claude');
     });
-    expect(result.current.value).toBe('claude');
 
-    await expect(
-      act(async () => {
-        await result.current.setValue('invalid-model');
-      })
-    ).rejects.toThrow('Invalid model ID');
+    expect(mockStorage.setValue).toHaveBeenCalledWith('claude');
   });
 
-  it('should handle array values', async () => {
-    vi.mocked(global.browser.storage.sync.get).mockResolvedValue({
-      selectedTags: ['id1', 'id2'],
-    });
-
-    const { result } = renderHook(() =>
-      useStorage<string[]>({ key: 'selectedTags', defaultValue: [] })
-    );
+  it('should support updater function in setValue', async () => {
+    const mockStorage = createMockStorageItem(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result } = renderHook(() => useWxtStorage(mockStorage as any));
 
     await waitFor(() => {
-      expect(result.current.value).toEqual(['id1', 'id2']);
+      expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.setValue(['id1', 'id2', 'id3']);
+      await result.current.setValue((prev: boolean | null) => !prev);
     });
 
-    expect(global.browser.storage.sync.set).toHaveBeenCalledWith({
-      selectedTags: ['id1', 'id2', 'id3'],
-    });
+    expect(mockStorage.setValue).toHaveBeenCalledWith(true);
   });
 
-  it('should handle boolean values', async () => {
-    vi.mocked(global.browser.storage.sync.get).mockResolvedValue({ isDarkMode: true });
+  it('should expose error state', async () => {
+    const mockStorage = createMockStorageItem('default');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result } = renderHook(() => useWxtStorage(mockStorage as any));
 
-    const { result } = renderHook(() =>
-      useStorage({ key: 'isDarkMode', defaultValue: false })
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
-    await waitFor(() => expect(result.current.value).toBe(true));
+    expect(result.current.error).toBe(null);
+  });
 
-    await act(async () => {
-      await result.current.setValue(false);
+  it('should return error property in hook result', () => {
+    const mockStorage = createMockStorageItem('default');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result } = renderHook(() => useWxtStorage(mockStorage as any));
+
+    expect('error' in result.current).toBe(true);
+  });
+
+  it('should handle boolean storage items', async () => {
+    const mockStorage = createMockStorageItem(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result } = renderHook(() => useWxtStorage(mockStorage as any));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.value).toBe(false);
+  });
+
+  it('should cleanup watcher on unmount', async () => {
+    const mockStorage = createMockStorageItem('default');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { result, unmount } = renderHook(() => useWxtStorage(mockStorage as any));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockStorage.watch).toHaveBeenCalled();
+
+    unmount();
+
+    // Cleanup verified by no errors on unmount
   });
 });

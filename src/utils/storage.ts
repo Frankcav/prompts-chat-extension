@@ -18,23 +18,49 @@ export const gaClientIdStorage = storage.defineItem<string>('local:ga_client_id'
 export function useWxtStorage<T>(item: ReturnType<typeof storage.defineItem<T>>) {
   const [value, setValue] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    item.getValue().then(v => {
-      setValue(v);
-      setIsLoading(false);
-    });
+    let unwatch: (() => void) | undefined;
 
-    const unwatch = item.watch(newValue => setValue(newValue));
-    return unwatch;
+    item.getValue()
+      .then(v => {
+        setValue(v);
+        setError(null);
+      })
+      .catch(err => {
+        console.error('Storage read error:', err);
+        setError(err instanceof Error ? err : new Error('Failed to read from storage'));
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    try {
+      unwatch = item.watch(newValue => {
+        setValue(newValue);
+        setError(null);
+      });
+    } catch (err) {
+      console.error('Storage watch error:', err);
+    }
+
+    return () => unwatch?.();
   }, [item]);
 
   const update = async (newValue: T | ((prev: T | null) => T)) => {
     const valueToSet = typeof newValue === 'function'
       ? (newValue as (prev: T | null) => T)(value)
       : newValue;
-    await item.setValue(valueToSet);
+    try {
+      await item.setValue(valueToSet);
+      setError(null);
+    } catch (err) {
+      console.error('Storage write error:', err);
+      setError(err instanceof Error ? err : new Error('Failed to write to storage'));
+      throw err;
+    }
   };
 
-  return { value, isLoading, setValue: update };
+  return { value, isLoading, error, setValue: update };
 }

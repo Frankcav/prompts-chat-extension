@@ -20,6 +20,12 @@ interface HighlightedContentProps {
 // Hoisted empty array to prevent new reference on every render
 const EMPTY_VARIABLES: TemplateVariable[] = [];
 
+// Hoisted DOMPurify config - restricted to only tags/attributes Shiki produces
+const DOMPURIFY_CONFIG = {
+  ALLOWED_TAGS: ['pre', 'code', 'span'],
+  ALLOWED_ATTR: ['class', 'style'],
+};
+
 function getVariableDisplayValue(variable: TemplateVariable): string {
   const hasValue = variable.value && variable.value.trim() !== "";
   if (hasValue) return variable.value!;
@@ -219,9 +225,7 @@ export function HighlightedContent({
 
   const safeHtml = useMemo(() => {
     if (!highlightedHtml) return "";
-    return DOMPurify.sanitize(highlightedHtml, {
-      USE_PROFILES: { html: true },
-    });
+    return DOMPurify.sanitize(highlightedHtml, DOMPURIFY_CONFIG);
   }, [highlightedHtml]);
 
   if (useHighlighting) {

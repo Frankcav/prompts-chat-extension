@@ -7,9 +7,17 @@ let highlighterPromise: Promise<Highlighter> | null = null;
 const highlightCache = new Map<string, string>();
 const MAX_CACHE_SIZE = 500; // Cache up to 500 highlighted snippets
 
+// djb2 hash function - fast and good distribution for strings
+function hashCode(str: string): number {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) ^ str.charCodeAt(i);
+  }
+  return hash >>> 0; // Convert to unsigned 32-bit integer
+}
+
 function getCacheKey(code: string, lang: string): string {
-  // Use a simple hash-like key combining content and language
-  return `${lang}:${code.length}:${code.slice(0, 100)}:${code.slice(-50)}`;
+  return `${lang}:${hashCode(code)}`;
 }
 
 function addToCache(key: string, value: string): void {

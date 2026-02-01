@@ -1,13 +1,6 @@
 import { buildPlatformUrl, getPlatformById } from '@/lib/constants';
+import { onMessage, InsertPromptMessage, InsertPromptResponse } from '@/utils/messaging';
 import type { Browser } from 'wxt/browser';
-
-interface UsePromptMessage {
-  action: string;
-  data?: {
-    modelId: string;
-    prompt: string;
-  };
-}
 
 export default defineBackground(() => {
   function isOnModelDomain(currentUrl: string, baseUrl: string): boolean {
@@ -37,18 +30,44 @@ export default defineBackground(() => {
     return allTabs[0];
   }
 
-  async function insertPrompt({ prompt, inputSelector }: { prompt: string; inputSelector: string }) {
-    const activeTab = await getActiveTab();
-    if (!activeTab?.id) return { success: false };
+  async function insertPrompt({ prompt, inputSelector, tabId }: { prompt: string; inputSelector: string; tabId?: number }): Promise<InsertPromptResponse> {
+    const targetTabId = tabId ?? (await getActiveTab())?.id;
+    if (!targetTabId) return { success: false };
 
     try {
-      return await browser.tabs.sendMessage(activeTab.id, {
+      const message: InsertPromptMessage = {
         action: 'insertPrompt',
         data: { prompt, inputSelector }
-      });
+      };
+      return await browser.tabs.sendMessage(targetTabId, message);
     } catch {
       return { success: false };
     }
+  }
+
+  async function insertPromptWithRetry({
+    prompt,
+    inputSelector,
+    tabId,
+    maxRetries = 5,
+    initialDelay = 300
+  }: {
+    prompt: string;
+    inputSelector: string;
+    tabId: number;
+    maxRetries?: number;
+    initialDelay?: number;
+  }): Promise<{ success: boolean }> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const response = await insertPrompt({ prompt, inputSelector, tabId });
+      if (response?.success) {
+        return response;
+      }
+      // Exponential backoff: 300ms, 600ms, 1200ms, 2400ms, 4800ms
+      const delay = initialDelay * Math.pow(2, attempt);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    return { success: false };
   }
 
   function waitForTabToLoad(requestedTabId: number): Promise<Browser.tabs.Tab> {
@@ -63,10 +82,8 @@ export default defineBackground(() => {
     });
   }
 
-  async function handleUsePrompt(message: UsePromptMessage) {
-    if (!message.data) return false;
-
-    const { modelId, prompt } = message.data;
+  async function handleUsePrompt(data: { modelId: string; prompt: string }): Promise<boolean> {
+    const { modelId, prompt } = data;
     const platform = getPlatformById(modelId);
     if (!platform) return false;
 
@@ -91,9 +108,12 @@ export default defineBackground(() => {
         if (!tabCreated?.id) return false;
 
         await waitForTabToLoad(tabCreated.id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const response = await insertPrompt({ prompt, inputSelector: platform.inputSelector });
+        const response = await insertPromptWithRetry({
+          prompt,
+          inputSelector: platform.inputSelector,
+          tabId: tabCreated.id
+        });
         return response?.success ?? false;
       }
 
@@ -105,11 +125,8 @@ export default defineBackground(() => {
     }
   }
 
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'usePrompt') {
-      handleUsePrompt(message)
-        .then(success => sendResponse({ success }));
-      return true;
-    }
+  onMessage('usePrompt', async (message) => {
+    const success = await handleUsePrompt(message.data);
+    return { success };
   });
 });

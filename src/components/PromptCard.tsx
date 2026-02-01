@@ -16,10 +16,21 @@ export const PromptCard = memo(function PromptCard({ prompt, onClick }: PromptCa
   const hasAudio = prompt.mediaUrl && prompt.type === "AUDIO";
   const isTextPrompt = !hasImage && !hasVideo && !hasAudio;
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <article
       onClick={onClick}
-      className="group flex gap-3 p-3 rounded-lg border border-border bg-card cursor-pointer hover:shadow-md transition-shadow"
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`View prompt: ${prompt.title}`}
+      className="group flex gap-3 p-3 rounded-lg border border-border bg-card cursor-pointer hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-shadow"
       style={{
         contentVisibility: "auto",
         containIntrinsicSize: "auto 100px",

@@ -1,5 +1,6 @@
 import { Container } from '@/components/Container';
 import { EmptyPrompts } from '@/components/EmptyPrompts';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { LoadingPrompts } from '@/components/LoadingPrompts';
 import { Navbar } from '@/components/Navbar';
 import { PromptsList } from '@/components/PromptsList';
@@ -10,11 +11,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { PromptsProvider, usePrompts } from '@/lib/contexts/PromptsContext';
 
+const FIVE_MINUTES = 5 * 60 * 1000;
+const TEN_MINUTES = 10 * 60 * 1000;
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
       refetchOnWindowFocus: false,
+      staleTime: FIVE_MINUTES,  // Data considered fresh for 5 minutes
+      gcTime: TEN_MINUTES,      // Garbage collect unused cache after 10 minutes
     },
   },
 });
@@ -50,11 +56,13 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <PromptsProvider>
-        <AppContent />
-      </PromptsProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <PromptsProvider>
+          <AppContent />
+        </PromptsProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

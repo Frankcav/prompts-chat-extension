@@ -9,7 +9,7 @@ import { analytics } from "@/lib/analytics";
 import { Prompt, Tag, TemplateVariable } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { applyTemplateVariables, hasTemplateVariables, parseTemplateVariables } from "@/lib/utils/prompts";
-import { Check, Copy, ExternalLink, Variable } from "lucide-react";
+import { AlertCircle, Check, Copy, ExternalLink, Variable } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { AudioPlayer } from "./AudioPlayer";
 import { HighlightedContent } from "./HighlightedContent";
@@ -142,7 +142,7 @@ function VariableIndicator({ filledCount, totalCount }: VariableIndicatorProps):
 interface DialogFooterActionsProps {
   prompt: Prompt;
   finalContent: string;
-  isCopied: boolean;
+  copyState: CopyState;
   hasVariables: boolean;
   filledVariablesCount: number;
   totalVariablesCount: number;
@@ -153,13 +153,29 @@ interface DialogFooterActionsProps {
 function DialogFooterActions({
   prompt,
   finalContent,
-  isCopied,
+  copyState,
   hasVariables,
   filledVariablesCount,
   totalVariablesCount,
   onCopy,
   onClose,
 }: DialogFooterActionsProps): React.ReactElement {
+  const getCopyIcon = () => {
+    switch (copyState) {
+      case 'copied': return <Check className="h-4 w-4" />;
+      case 'error': return <AlertCircle className="h-4 w-4" />;
+      default: return <Copy className="h-4 w-4" />;
+    }
+  };
+
+  const getCopyTooltip = () => {
+    switch (copyState) {
+      case 'copied': return "Copied!";
+      case 'error': return "Failed to copy";
+      default: return "Copy prompt";
+    }
+  };
+
   return (
     <div className="px-4 py-3 flex items-center justify-between bg-muted/50 border-t border-border">
       <div className="flex items-center gap-2">
@@ -179,14 +195,16 @@ function DialogFooterActions({
                 onClick={onCopy}
                 className={cn(
                   "h-8 w-8 transition-all duration-200",
-                  isCopied ? "text-green-500 scale-110" : "text-muted-foreground hover:text-foreground",
+                  copyState === 'copied' && "text-green-500 scale-110",
+                  copyState === 'error' && "text-destructive scale-110",
+                  copyState === 'idle' && "text-muted-foreground hover:text-foreground",
                 )}
                 data-testid="copy-button"
               >
-                {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {getCopyIcon()}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">{isCopied ? "Copied!" : "Copy prompt"}</TooltipContent>
+            <TooltipContent side="top">{getCopyTooltip()}</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -214,9 +232,11 @@ function DialogFooterActions({
   );
 }
 
+type CopyState = 'idle' | 'copied' | 'error';
+
 export function PromptDetailDialog({ prompt, open, onOpenChange }: PromptDetailDialogProps): React.ReactElement | null {
   const { copy } = useCopy();
-  const [isCopied, setIsCopied] = useState(false);
+  const [copyState, setCopyState] = useState<CopyState>('idle');
   const [variables, setVariables] = useState<TemplateVariable[]>([]);
   const hasVars = prompt ? hasTemplateVariables(prompt.content) : false;
 
@@ -224,11 +244,17 @@ export function PromptDetailDialog({ prompt, open, onOpenChange }: PromptDetailD
 
   const handleCopy = useCallback((): void => {
     if (!prompt) return;
-    copy(finalContent).then(() => {
-      setIsCopied(true);
-      analytics.promptCopied(prompt.id, prompt.category);
-      setTimeout(() => setIsCopied(false), 2000);
-    });
+    copy(finalContent)
+      .then(() => {
+        setCopyState('copied');
+        analytics.promptCopied(prompt.id, prompt.category);
+        setTimeout(() => setCopyState('idle'), 2000);
+      })
+      .catch((err) => {
+        console.error('Failed to copy:', err);
+        setCopyState('error');
+        setTimeout(() => setCopyState('idle'), 2000);
+      });
   }, [prompt, finalContent, copy]);
 
   const updateVariable = useCallback((name: string, value: string): void => {
@@ -249,7 +275,7 @@ export function PromptDetailDialog({ prompt, open, onOpenChange }: PromptDetailD
 
   useEffect(() => {
     if (!open) {
-      setIsCopied(false);
+      setCopyState('idle');
     }
   }, [open]);
 
@@ -333,7 +359,7 @@ export function PromptDetailDialog({ prompt, open, onOpenChange }: PromptDetailD
         <DialogFooterActions
           prompt={prompt}
           finalContent={finalContent}
-          isCopied={isCopied}
+          copyState={copyState}
           hasVariables={hasVars}
           filledVariablesCount={filledVariablesCount}
           totalVariablesCount={variables.length}

@@ -46,7 +46,7 @@ describe('fetchPrompts', () => {
     mockSuccessResponse();
     const result = await fetchPrompts();
 
-    expect(global.fetch).toHaveBeenCalledWith('https://prompts.chat/prompts.json');
+    expect(global.fetch).toHaveBeenCalledWith('https://prompts.otrochat.com/prompts.json');
     expect(result.prompts).toHaveLength(2);
     expect(result.total).toBe(2);
   });

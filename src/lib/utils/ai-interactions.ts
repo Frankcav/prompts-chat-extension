@@ -1,15 +1,13 @@
 import { Platform } from "../constants";
+import { sendMessage } from "@/utils/messaging";
 
 export async function usePromptInAI(prompt: string, platform: Platform): Promise<boolean> {
   if (!platform) return false;
 
   try {
-    const response = await browser.runtime.sendMessage({
-      action: 'usePrompt',
-      data: {
-        modelId: platform.id,
-        prompt
-      }
+    const response = await sendMessage('usePrompt', {
+      modelId: platform.id,
+      prompt
     });
     return response?.success ?? false;
   } catch (error) {
