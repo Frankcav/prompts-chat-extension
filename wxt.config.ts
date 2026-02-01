@@ -48,7 +48,7 @@ export default defineConfig({
       ? {
           browser_specific_settings: {
             gecko: {
-              id: "extension@prompts.chat",
+              id: "extension@otrochat.com",
               strict_min_version: "109.0",
               // Firefox requires disclosure of data collection (we use Google Analytics)
               data_collection_permissions: {
