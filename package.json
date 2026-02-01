@@ -2,7 +2,7 @@
   "name": "prompts-otrochat",
   "description": "prompts.otrochat - My AI-powered prompt library",
   "private": false,
-  "version": "1.4.0.1",
+  "version": "1.4.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
