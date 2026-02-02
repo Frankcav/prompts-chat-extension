@@ -24,9 +24,9 @@ const SIZES = {
 export function Logo({ size = "md", showText = true, className }: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <img src="/logos/logo-light.svg" alt="prompts.otrochat.com logo" className={cn(SIZES[size].container, "dark:hidden")} />
+      <img src="/logos/logo-400.webp" alt="prompts.otrochat.com logo" className={cn(SIZES[size].container, "dark:hidden")} />
       <img
-        src="/logos/logo-dark.svg"
+        src="/logos/logo-400.webp"
         alt="prompts.otrochat.com logo"
         className={cn(SIZES[size].container, "hidden dark:block")}
       />
